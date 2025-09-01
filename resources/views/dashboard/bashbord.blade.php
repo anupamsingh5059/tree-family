@@ -17,58 +17,36 @@
       </div>
       <form action="#" method="POST" id="add_employee_form" enctype="multipart/form-data">
         @csrf
-        <!-- <div class="modal-body p-4 bg-light">
-          <div class="row">
-            <div class="col-lg">
-              <label for="fname">First Name</label>
-              <input type="text" name="fname" class="form-control" placeholder="First Name" required>
-            </div>
-            <div class="col-lg">
-              <label for="lname">Last Name</label>
-              <input type="text" name="lname" class="form-control" placeholder="Last Name" required>
-            </div>
-          </div>
-          <div class="my-2">
-            <label for="email">E-mail</label>
-            <input type="email" name="email" class="form-control" placeholder="E-mail" required>
-          </div>
-          <div class="my-2">
-            <label for="phone">Phone</label>
-            <input type="tel" name="phone" class="form-control" placeholder="Phone" required>
-          </div>
-          <div class="my-2">
-            <label for="post">Post</label>
-            <input type="text" name="post" class="form-control" placeholder="Post" required>
-          </div>
-          <div class="my-2">
-            <label for="avatar">Select Avatar</label>
-            <input type="file" name="avatar" class="form-control" required>
-          </div>
-        </div> -->
+      
 
         <div class="modal-body p-4 bg-light">
           <div class="row">
             <div class="col-lg">
               <label for="fname"> Name</label>
-              <input type="text" name="name"  class="form-control" placeholder="Enter Name" required>
+              <input type="text" name="name"  class="form-control" placeholder="Enter Name" >
+
+               <span class="text-danger" id="name_error"></span>
             </div>
           
           </div>
          
           <div class="my-2">
             <label for="phone">Relation</label>
-           <input type="text" name="relation"  class="form-control" placeholder="Relation" required>
+           <input type="text" name="relation"  class="form-control" placeholder="Relation" >
           </div>
+          <span class="text-danger" id="relation_error"></span>
           <div class="my-2">
             <label for="post">Parents_ID</label>
-            <input type="text" name="parent_id"  class="form-control" placeholder="Parent_id" required>
+            <input type="text" name="parent_id"  class="form-control" placeholder="Parent_id" >
           </div>
-          <!-- <div class="my-2">
-            <label for="avatar">Select Avatar</label>
-            <input type="file" name="avatar" class="form-control">
-          </div> -->
-          <div class="mt-2" id="avatar">
+           <span class="text-danger" id="parent_id_error"></span>
+          <div class="my-2">
+            <label for="image">Select Image</label>
+            <input type="file" name="image" class="form-control">
+             <span class="text-danger" id="image_error"></span>
           </div>
+          
+         
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -91,7 +69,7 @@
       <form action="#" method="POST" id="edit_employee_form" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="emp_id" id="emp_id">
-        <input type="hidden" name="emp_avatar" id="emp_avatar">
+        <input type="hidden" name="mem_image" id="mem_image">
         <div class="modal-body p-4 bg-light">
           <div class="row">
             <div class="col-lg">
@@ -109,11 +87,12 @@
             <label for="post">Parents_ID</label>
             <input type="text" name="parent_id" id="parent_id" class="form-control" placeholder="Parent_id" required>
           </div>
-          <!-- <div class="my-2">
-            <label for="avatar">Select Avatar</label>
-            <input type="file" name="avatar" class="form-control">
-          </div> -->
-          <div class="mt-2" id="avatar">
+          <div class="my-2">
+            <label for="avatar">Select Image</label>
+            <input type="file" name="image" class="form-control">
+          </div>
+          <div class="mt-2" id="image">
+          
           </div>
         </div>
         <div class="modal-footer">
@@ -162,6 +141,8 @@
       $("#add_employee_form").submit(function(e) {
         e.preventDefault();
         const fd = new FormData(this);
+        // $('#add_employee_form')[0].reset();
+        //  $(".text-danger").text("");
         $("#add_employee_btn").text('Adding...');
         $.ajax({
           url: "{{ route('store') }}",
@@ -183,7 +164,18 @@
             $("#add_employee_btn").text('Add Family');
             $("#add_employee_form")[0].reset();
             $("#addEmployeeModal").modal('hide');
-          }
+          },
+
+           error: function(xhr) {
+    if (xhr.status === 422) {
+        $(".text-danger").text(""); // clear old errors
+        let errors = xhr.responseJSON.errors;
+        $.each(errors, function(key, value) {
+            $("#" + key + "_error").text(value[0]);
+        });
+    }
+}
+
         });
       });
       // edit employee ajax request
@@ -203,6 +195,10 @@
             // alert(name);
             $("#relation").val(response.relation);
               $("#parent_id").val(response.parent_id);
+               $("#image").html(
+              `<img src="uploads/${response.image}" width="200" class="img-fluid img-thumbnail">`);
+         
+            $("#mem_image").val(response.image);
             $("#emp_id").val(response.id);
            
           }

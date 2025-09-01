@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Family Tree</title>
+    <title>Responsive Family Tree</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body{font-family:Arial;text-align:center;margin:20px;background:#f0f2f5;}
-        .tree-wrapper{position:relative;min-height:500px;width:100%;}
+        .tree-wrapper{position:relative;min-height:500px;width:100%;max-width:1200px;margin:auto;}
 
         .node{
-            padding:12px 18px;border-radius:10px;background:#fff;border:2px solid #0d6efd;
+            padding:8px 12px;border-radius:10px;background:#fff;border:2px solid #0d6efd;
             cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:0.3s;
             position:absolute;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);
         }
         .node:hover{background:#0d6efd;color:#fff;}
         .relation{font-size:12px;color:#555;margin-top:3px;}
+        .node img{width:60px;height:60px;border-radius:50%;margin-bottom:5px;object-fit:cover;}
 
         /* Node positions */
-        #father{top:10%;left:50%;transform:translateX(-50%);}
-        #mother{top:10%;left:50%;transform:translateX(-50%) translateY(45px);}
-        #spouse{left:10%;top:50%;transform:translateY(-50%);}
+        #father{top:5%;left:50%;transform:translateX(-50%);}
+        #mother{top:5%;left:50%;transform:translateX(-50%) translateY(65px);}
+        #spouse{left:5%;top:50%;transform:translateY(-50%);}
         #self{left:50%;top:50%;transform:translate(-50%,-50%);}
-        #siblings{right:10%;top:50%;transform:translateY(-50%);}
-        #children{bottom:10%;left:50%;transform:translateX(-50%);}
+        #siblings{right:5%;top:50%;transform:translateY(-50%);}
+        #children{bottom:5%;left:50%;transform:translateX(-50%);}
 
-        /* Connectors */
-        .line{
-            position:absolute;background:#0d6efd;z-index:-1;
+        .line{position:absolute;background:#0d6efd;z-index:-1; height:2px;}
+
+        /* Responsive adjustments */
+        @media(max-width:768px){
+            #spouse{left:20%;top:40%;}
+            #siblings{right:20%;top:40%;}
+            #children{bottom:10%;left:50%;}
         }
     </style>
 </head>
@@ -47,7 +52,9 @@ $(document).ready(function(){
 
     function makeNode(member){
         if(!member) return "";
+        const imgSrc = member.image ? member.image : 'https://via.placeholder.com/60';
         return `<div data-id="${member.id}">
+                    <img src="uploads/${imgSrc}" alt="${member.name}">
                     ${member.name}<br>
                     <span class="relation">(${member.relation})</span>
                 </div>`;
@@ -59,10 +66,9 @@ $(document).ready(function(){
         const f=$from.offset(), t=$to.offset();
         const x1=f.left+f.width/2, y1=f.top+f.height/2;
         const x2=t.left+t.width/2, y2=t.top+t.height/2;
-        const length=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+        const length=Math.sqrt((x2-x1)**2+(y2-y1)**2);
         const angle=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
-        const line=$('<div class="line"></div>').appendTo('#tree-wrapper');
-        line.css({
+        $('<div class="line"></div>').appendTo('#tree-wrapper').css({
             width:length+'px',
             height:'2px',
             top:y1+'px',
@@ -74,7 +80,7 @@ $(document).ready(function(){
 
     function loadTree(id){
         $("#tree-wrapper").fadeOut(200,function(){
-            $(".line").remove(); // Remove old lines
+            $(".line").remove();
 
             $.get('/tree/'+id,function(res){
                 if(res.error){ alert(res.error); return; }
@@ -96,17 +102,20 @@ $(document).ready(function(){
                 $("#children").html(chHtml);
 
                 $("#tree-wrapper").fadeIn(200,function(){
-                    // Draw connectors
                     drawLine("#father","#self");
                     drawLine("#mother","#self");
                     drawLine("#spouse","#self");
                     drawLine("#self","#children");
+
+                    // Sibling connectors
+                    $('#siblings div[data-id]').each(function(){
+                        drawLine("#self",this);
+                    });
                 });
             });
         });
     }
 
-    // Delegate click
     $(document).on("click",".node div[data-id]",function(){
         let id=$(this).data("id");
         if(id) loadTree(id);
@@ -116,33 +125,3 @@ $(document).ready(function(){
 
 </body>
 </html>
-
-
-
-<!-- Root = Anupam (parent_id = 0)
-
-Father / Mother → top
-
-Spouse → left
-
-Siblings → right
-
-Children → bottom
-
-Click on any node → fadeOut old tree → fadeIn new tree
-
-Relation name (father/child/spouse/sibling) show ho
-
-Pivot table / many-to-many relations nahi -->
-
-<!-- Clean modern UI with shadow & hover effect
-
-Root Anupam center, relations aligned properly
-
-Relation names displayed under each member
-
-Blue connectors show parent-child/spouse links
-
-Click any node → fadeOut old tree → fadeIn new tree
-
-Fully dynamic using Laravel + AJAX + jQuery -->

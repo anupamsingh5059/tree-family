@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('members', function (Blueprint $table) {
             $table->id();
-              $table->string('name');
+            $table->string('name');
+            $table->text('image');
             $table->unsignedBigInteger('parent_id')->default(0);
             $table->string('relation')->nullable(); // father, mother, spouse, child, sibling, self
             $table->timestamps();
