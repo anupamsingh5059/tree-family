@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FamilyTreeController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomController;
+
 Route::get('/dash', function () {
     return view('dashboard.bashbord');
 });
@@ -55,4 +57,10 @@ Route::post('/update', [FamilyTreeController::class, 'update'])->name('update');
 
 
 // End login admin route
+
+
+
+Route::get('custome-login', [CustomController::class, "Customelogin"]);
+Route::post('custome-post', [CustomController::class, "CustomePost"])->name('users.store');
+
 

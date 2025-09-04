@@ -31,5 +31,5 @@ class MemberController extends Controller
         ]);
     }
  
-}
+} 
 // C:\Users\payni\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile
