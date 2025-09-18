@@ -23,6 +23,7 @@ Route::get('/ss', [MemberController::class, 'index']);
 
 Route::get('/tree/{id}', [MemberController::class,'getTree']);
 
+
 Route::get('/', function() {
     // Anupam ka id = 1
     return view('tree');
