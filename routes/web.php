@@ -5,6 +5,10 @@ use App\Http\Controllers\FamilyTreeController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomController;
+use App\Http\Controllers\CustomtreeController;
+
+
+Route::get('/family-one/{id}', [CustomtreeController::class, 'getFamilyOne']);
 
 Route::get('/dash', function () {
     return view('dashboard.bashbord');
@@ -59,7 +63,7 @@ Route::post('/update', [FamilyTreeController::class, 'update'])->name('update');
 // End login admin route
 
 
-
+// Route::get('')
 Route::get('custome-login', [CustomController::class, "Customelogin"]);
 Route::post('custome-post', [CustomController::class, "CustomePost"])->name('users.store');
 

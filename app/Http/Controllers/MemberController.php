@@ -13,9 +13,14 @@ class MemberController extends Controller
      public function getTree($id)
     {
         $root = Member::find($id);
-        if(!$root) return response()->json(['error'=>'Member not found'],404);
+        if(!$root){
+
+           return response()->json(['error'=>'Member not found'],404);
+        }
+             
 
         $relations = [
+            'husband' => Member::where('parent_id',$id)->where('relation','husband')->first(),
             'father' => Member::where('parent_id',$id)->where('relation','father')->first(),
             'mother' => Member::where('parent_id',$id)->where('relation','mother')->first(),
             'spouse' => Member::where('parent_id',$id)->where('relation','spouse')->first(),

@@ -17,6 +17,7 @@
             align-items: center;
             gap: 40px;
             margin: 20px 0;
+            position: relative;
         }
         .node {
             padding: 10px 15px;
@@ -27,19 +28,65 @@
             cursor: pointer;
             transition: 0.3s;
             min-width: 140px;
+            position: relative;
+            z-index: 1;
         }
         .node:hover { background: #0d6efd; color: #fff; }
-        .connector {
-            width: 2px;
-            height: 30px;
-            background: #0d6efd;
-            margin: auto;
-        }
         .relation-label {
             font-size: 12px;
             font-weight: bold;
             color: #6c757d;
             display: block;
+        }
+
+        /* 🔹 Vertical connector line */
+        .connector {
+            width: 2px;
+            height: 30px;
+            background: #0d6efd;
+            margin: auto;
+            position: relative;
+        }
+        .connector::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #0d6efd;
+        }
+
+        /* 🔹 Horizontal connectors between siblings/children */
+        .level.with-lines::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: #0d6efd;
+        }
+        .level.with-lines .node::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: #0d6efd;
+        }
+        .level.with-lines .node::after {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid #0d6efd;
         }
     </style>
 </head>
@@ -53,16 +100,16 @@
         <div class="level" id="parents"></div>
         <div class="connector" id="p-connector" style="display:none"></div>
 
-        <!-- Root Self -->
-        <div class="level">
+        <!-- Root Self + Siblings -->
+        <div class="level with-lines" id="siblings-level">
             <div class="node" id="spouse"></div>
             <div class="node" id="self"></div>
-            <div class="node" id="siblings"></div>
+            <div id="siblings"></div>
         </div>
         <div class="connector" id="c-connector" style="display:none"></div>
 
         <!-- Children -->
-        <div class="level" id="children"></div>
+        <div class="level with-lines" id="children"></div>
     </div>
 </div>
 
