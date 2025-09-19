@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Family Tree</title>
  <style>
+ 
     html, body {
       margin: 0;
       padding: 0;
@@ -12,6 +13,8 @@
       font-family: Arial, sans-serif;
       background: #f8f9fa;
       overflow: hidden;
+       /* height: 100px;  */
+overflow-y : auto;
     }
     #header {
       text-align: center;
@@ -111,14 +114,44 @@
       padding: 0px;
     }
     
+  /* ✅ Full width header */
+    .header {
+      background: #f4f4f4;
+      height: 80px;              /* Header height */
+      display: flex;
+      flex-direction: column;     /* Text ऊपर + Button नीचे */
+      justify-content: center;    /* Vertically center */
+      align-items: center;        /* Horizontally center */
+      border-bottom: 2px solid #ccc;
+    }
+    .header h4 {
+      margin: 0 0 12px 0;
+    }
+    .header button {
+      padding: 10px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #28a745;
+      color: white;
+    }
+    .header button:hover {
+      background: #218838;
+    }
   </style>
 </head>
 <body>
+
+
   <!-- 👇 Header -->
   <div id="header">Family Tree</div>
 
 
-  
+    <div class="header">
+    <h4>Click the Button to refresh the page</h4>
+    <button id="myButton">Reload</button>
+  </div>
 
   <div id="tree-container">
     <div id="tree-wrapper">
@@ -133,6 +166,8 @@
   </div>
 
 <script>
+
+  
 const rootId = 1;
 
 // Create Node
@@ -275,6 +310,19 @@ async function loadTree(memberId = rootId) {
 loadTree(rootId);
 window.addEventListener("resize", () => loadTree(rootId));
 </script>
+
+
+
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+     <script>
+    // jQuery reload
+    $("#myButton").on("click", function() {
+      location.reload();
+    });
+
+    </script>
+
 
 </body>
 </html>
