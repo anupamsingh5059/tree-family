@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Responsive Family Tree</title>
-  <style>
+  <title>Family Tree</title>
+ <style>
     html, body {
       margin: 0;
       padding: 0;
@@ -18,7 +18,7 @@
       padding: 12px;
       font-size: 20px;
       font-weight: bold;
-      background: #007bff;
+      background: #e54457ff;
       color: white;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       position: sticky;
@@ -55,9 +55,10 @@
       transform: scale(1.05);
     }
     .tree-member img {
-      width: 50%;
-      border-radius: 50%;
-      object-fit: cover;
+        width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
     }
     .tree-member div {
       margin-top: 5px;
@@ -91,11 +92,33 @@
       pointer-events: none;
       z-index: 1;
     }
+    /* Expand Button */
+    .expand-btn {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: transparent;
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 30px;
+      cursor: pointer;
+      line-height: 20px;
+      text-align: center;
+      padding: 0px;
+    }
+    
   </style>
 </head>
 <body>
-  <!-- 👇 Header me name show hoga -->
+  <!-- 👇 Header -->
   <div id="header">Family Tree</div>
+
+
+  
 
   <div id="tree-container">
     <div id="tree-wrapper">
@@ -109,13 +132,11 @@
     </div>
   </div>
 
-<!-- ... keep your existing HTML and CSS ... -->
-
 <script>
- const rootId = 1;
-const state = {}; // Tracks expanded/collapsed nodes
+const rootId = 1;
 
-function makeNode(member, left, top, relation, hasRelations, isRoot = false) {
+// Create Node
+function makeNode(member, left, top, relation, isRoot = false) {
   if (!member) return null;
   const div = document.createElement("div");
   div.className = "tree-member";
@@ -123,32 +144,29 @@ function makeNode(member, left, top, relation, hasRelations, isRoot = false) {
   div.style.left = left;
   div.style.top = top;
 
-  let symbolHtml = "";
-  if (!isRoot) {
-    // Only show plus if node has relations
-    if (hasRelations) {
-      symbolHtml = `<span style="font-size:14px;cursor:pointer;" onclick="toggleNode(${member.id})" id="symbol-${member.id}">➕</span>`;
-    } else {
-      symbolHtml = `<span style="font-size:14px;">➖</span>`;
-    }
-  }
-
-  let buttonHtml = "";
-  if (relation !== "Self") {
-    buttonHtml = `<br><button class="view-btn" onclick="loadTree(${member.id})">Read More</button>`;
-  }
-
+  // Node content
   div.innerHTML = `
     <img src="uploads/${member.image || 'https://via.placeholder.com/100'}" alt="${member.name}">
-    <div>${member.name} ${symbolHtml}</div>
+    <div>${member.name}</div>
     <span class="relation">${relation}</span>
-    ${buttonHtml}
+    ${relation !== "Self" && member.has_more ? `<br><button class="view-btn" onclick="loadTree(${member.id})">Read More</button>` : ""}
   `;
 
   document.getElementById("tree-wrapper").appendChild(div);
+
+  // ✅ Expand button show only if has_more = true
+  if (!isRoot && member.has_more) {
+    const btn = document.createElement("button");
+    btn.className = "expand-btn";
+    btn.innerText = "+";
+    btn.onclick = () => loadTree(member.id); // नया root load करेगा
+    div.appendChild(btn);
+  }
+
   return div;
 }
 
+// Connect two nodes
 function connectNodes(fromId, toId, label, startFromTop = false) {
   const from = document.getElementById(fromId).getBoundingClientRect();
   const to = document.getElementById(toId).getBoundingClientRect();
@@ -185,15 +203,7 @@ function connectNodes(fromId, toId, label, startFromTop = false) {
   svg.appendChild(text);
 }
 
-function toggleNode(memberId) {
-  const symbol = document.getElementById(`symbol-${memberId}`);
-  const expanded = state[memberId];
-  state[memberId] = !expanded;
-  symbol.textContent = state[memberId] ? "➖" : "➕";
-
-  loadTree(rootId);
-}
-
+// Render Tree
 function renderTree(data) {
   const wrapper = document.getElementById("tree-wrapper");
   wrapper.querySelectorAll(".tree-member").forEach(el => el.remove());
@@ -207,59 +217,49 @@ function renderTree(data) {
 
   document.getElementById("header").innerText = "Family Tree of " + data.root.name;
 
-  // Check if a node has any relations
-  const hasRelations = (member) => {
-    return (data.relations.father && member.id === data.relations.father.id) ||
-           (data.relations.mother && member.id === data.relations.mother.id) ||
-           (data.relations.spouse && member.id === data.relations.spouse.id) ||
-           (data.relations.siblings && data.relations.siblings.find(s => s.id === member.id)) ||
-           (data.relations.children && data.relations.children.find(c => c.id === member.id));
-  };
-
-  const isExpanded = (member) => state[member.id] !== false; // default true
-
-  // Root node (never minus)
-  const root = makeNode(data.root, "45%", "40%", "Self", hasRelations(data.root), true);
+  // Root node
+  const root = makeNode(data.root, "45%", "40%", "Self", true);
 
   // Father
-  if (data.relations.father && isExpanded(data.root)) {
-    const father = makeNode(data.relations.father, "20%", "15%", "Father", hasRelations(data.relations.father));
+  if (data.relations.father) {
+    const father = makeNode(data.relations.father, "20%", "15%", "Father");
     connectNodes(father.id, root.id, "Father");
   }
 
   // Mother
-  if (data.relations.mother && isExpanded(data.root)) {
-    const mother = makeNode(data.relations.mother, "70%", "15%", "Mother", hasRelations(data.relations.mother));
+  if (data.relations.mother) {
+    const mother = makeNode(data.relations.mother, "70%", "15%", "Mother");
     connectNodes(mother.id, root.id, "Mother", true);
   }
 
   // Spouse
-  if (data.relations.spouse && isExpanded(data.root)) {
-    const spouse = makeNode(data.relations.spouse, "20%", "40%", "Spouse", hasRelations(data.relations.spouse));
+  if (data.relations.spouse) {
+    const spouse = makeNode(data.relations.spouse, "20%", "40%", "Spouse");
     connectNodes(root.id, spouse.id, "Spouse");
   }
 
   // Siblings
-  if (data.relations.siblings && isExpanded(data.root)) {
+  if (data.relations.siblings && data.relations.siblings.length > 0) {
     let x = 25;
     data.relations.siblings.forEach(sib => {
-      const sibNode = makeNode(sib, `${x}%`, "60%", "Sibling", hasRelations(sib));
+      const sibNode = makeNode(sib, `${x}%`, "60%", "Sibling");
       connectNodes(root.id, sibNode.id, "Sibling");
       x += 15;
     });
   }
 
   // Children
-  if (data.relations.children && isExpanded(data.root)) {
+  if (data.relations.children && data.relations.children.length > 0) {
     let x = 35;
     data.relations.children.forEach(child => {
-      const childNode = makeNode(child, `${x}%`, "75%", "Child", hasRelations(child));
+      const childNode = makeNode(child, `${x}%`, "75%", "Child");
       connectNodes(root.id, childNode.id, "Child");
       x += 15;
     });
   }
 }
 
+// Load Tree Data
 async function loadTree(memberId = rootId) {
   try {
     const res = await fetch(`/tree/${memberId}`);
@@ -274,8 +274,6 @@ async function loadTree(memberId = rootId) {
 
 loadTree(rootId);
 window.addEventListener("resize", () => loadTree(rootId));
-
-
 </script>
 
 </body>

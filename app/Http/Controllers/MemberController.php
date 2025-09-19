@@ -3,38 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
-use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
-  
-
-
-     public function getTree($id)
+    public function getTree($id)
     {
-        $root = Member::find($id);
-        if(!$root){
+        $member = Member::findOrFail($id);
 
-           return response()->json(['error'=>'Member not found'],404);
-        }
-             
+        // Relations collect karo
+        $relations = [
+            'father'   => $member->children()->where('relation', 'Father')->first(),
+            'mother'   => $member->children()->where('relation', 'Mother')->first(),
+            'spouse'   => $member->children()->where('relation', 'Spouse')->first(),
+            'siblings' => $member->siblings()->get(),
+            'children' => $member->children()->where('relation', 'Child')->get(),
+        ];
+
+        // Helper: has_more flag add karne ke liye
+        $addHasMore = function ($m) {
+            if (!$m) return null;
+            return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'image' => $m->image,
+                'relation' => $m->relation,
+                'has_more' =>
+                    $m->children()->count() > 0
+            ];
+        };
+
+        $root = $addHasMore($member);
 
         $relations = [
-            'husband' => Member::where('parent_id',$id)->where('relation','husband')->first(),
-            'father' => Member::where('parent_id',$id)->where('relation','father')->first(),
-            'mother' => Member::where('parent_id',$id)->where('relation','mother')->first(),
-            'spouse' => Member::where('parent_id',$id)->where('relation','spouse')->first(),
-            'siblings' => Member::where('parent_id',$root->parent_id)
-                                ->where('id','!=',$id)
-                                ->where('relation','sibling')->get(),
-            'children' => Member::where('parent_id',$id)->where('relation','child')->get()
+            'father'   => $addHasMore($relations['father']),
+            'mother'   => $addHasMore($relations['mother']),
+            'spouse'   => $addHasMore($relations['spouse']),
+            'siblings' => $relations['siblings']->map($addHasMore),
+            'children' => $relations['children']->map($addHasMore),
         ];
 
         return response()->json([
-            'root'=>$root,
-            'relations'=>$relations
+            'root' => $root,
+            'relations' => $relations
         ]);
     }
- 
-} 
-// C:\Users\payni\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile
+}
