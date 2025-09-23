@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Family Tree</title>
-  <style>
+ <style>
+ 
     html, body {
       margin: 0;
       padding: 0;
@@ -11,9 +12,10 @@
       width: 100%;
       font-family: Arial, sans-serif;
       background: #f8f9fa;
-      overflow-y: auto;
+      overflow: hidden;
+       /* height: 100px;  */
+overflow-y : auto;
     }
-
     #header {
       text-align: center;
       padding: 12px;
@@ -26,22 +28,19 @@
       top: 0;
       z-index: 10;
     }
-
     #tree-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 80vh;
+      height: calc(100% - 50px);
       width: 100%;
       position: relative;
     }
-
     #tree-wrapper {
       position: relative;
       width: 100%;
-      min-height: 600px;
+      height: 100%;
     }
-
     .tree-member {
       position: absolute;
       text-align: center;
@@ -55,29 +54,24 @@
       transition: transform 0.2s;
       z-index: 2;
     }
-
     .tree-member:hover {
       transform: scale(1.05);
     }
-
     .tree-member img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
+        width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
     }
-
     .tree-member div {
       margin-top: 5px;
       font-size: 14px;
       font-weight: bold;
     }
-
     .relation {
       font-size: 12px;
       color: #555;
     }
-
     .view-btn {
       margin-top: 6px;
       background: #007bff;
@@ -89,11 +83,9 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-
     .view-btn:hover {
       background: #0056b3;
     }
-
     svg.connector-svg {
       position: absolute;
       top: 0;
@@ -103,7 +95,7 @@
       pointer-events: none;
       z-index: 1;
     }
-
+    /* Expand Button */
     .expand-btn {
       position: absolute;
       top: -18px;
@@ -121,10 +113,18 @@
       text-align: center;
       padding: 0px;
     }
+    
+ 
   </style>
 </head>
 <body>
+
+
+  <!-- 👇 Header -->
   <div id="header">Family Tree</div>
+
+
+   
 
   <div id="tree-container">
     <div id="tree-wrapper">
@@ -139,22 +139,11 @@
   </div>
 
 <script>
-const defaultRootId = 1;
 
-function getUrlParams() {
-  const path = window.location.pathname.split('/');
-  const id = parseInt(path[2]) || defaultRootId;
-  const relation = path[3] || 'self';
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get('name') || '';
-  return { id, relation, name };
-}
+  
+const rootId = 1;
 
-function updateUrl(member) {
-  const newUrl = `/tree/${member.id}/${member.relation.toLowerCase()}?name=${encodeURIComponent(member.name)}`;
-  window.history.pushState({ id: member.id }, '', newUrl);
-}
-
+// Create Node
 function makeNode(member, left, top, relation, isRoot = false) {
   if (!member) return null;
   const div = document.createElement("div");
@@ -163,34 +152,38 @@ function makeNode(member, left, top, relation, isRoot = false) {
   div.style.left = left;
   div.style.top = top;
 
+  // Node content
   div.innerHTML = `
-    <img src="${member.image ? '/uploads/' + member.image : 'https://via.placeholder.com/100'}" alt="${member.name}">
+   <img src="/uploads/${member.image || 'https://via.placeholder.com/100'}" alt="${member.name}">
     <div>${member.name}</div>
     <span class="relation">${relation}</span>
-    ${relation !== "Self" && member.has_more ? `<br><button class="view-btn" onclick="loadTree(${member.id}, '${member.relation}', '${member.name}')">Read More</button>` : ""}
+    ${relation !== "Self" && member.has_more ? `<br><button class="view-btn" onclick="loadTree(${member.id})">Read More</button>` : ""}
   `;
 
+  document.getElementById("tree-wrapper").appendChild(div);
+
+  // ✅ Expand button show only if has_more = true
   if (!isRoot && member.has_more) {
     const btn = document.createElement("button");
     btn.className = "expand-btn";
     btn.innerText = "+";
-    btn.onclick = () => loadTree(member.id, member.relation, member.name);
+    btn.onclick = () => loadTree(member.id); // नया root load करेगा
     div.appendChild(btn);
   }
 
-  document.getElementById("tree-wrapper").appendChild(div);
   return div;
 }
 
+// Connect two nodes
 function connectNodes(fromId, toId, label, startFromTop = false) {
   const from = document.getElementById(fromId).getBoundingClientRect();
   const to = document.getElementById(toId).getBoundingClientRect();
   const wrapper = document.getElementById("tree-wrapper").getBoundingClientRect();
 
-  const x1 = from.left + from.width/2 - wrapper.left;
-  const y1 = startFromTop ? from.top - wrapper.top : from.top + from.height/2 - wrapper.top;
-  const x2 = to.left + to.width/2 - wrapper.left;
-  const y2 = to.top + to.height/2 - wrapper.top;
+  const x1 = from.left + from.width / 2 - wrapper.left;
+  const y1 = startFromTop ? from.top - wrapper.top : from.top + from.height / 2 - wrapper.top;
+  const x2 = to.left + to.width / 2 - wrapper.left;
+  const y2 = to.top + to.height / 2 - wrapper.top;
 
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
   line.setAttribute("x1", x1);
@@ -200,20 +193,25 @@ function connectNodes(fromId, toId, label, startFromTop = false) {
   line.setAttribute("stroke", "#007bff");
   line.setAttribute("stroke-width", "2");
   line.setAttribute("marker-end", "url(#arrow)");
+  line.id = `line-${fromId}-${toId}`;
 
   const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", (x1+x2)/2);
-  text.setAttribute("y", (y1+y2)/2 - 8);
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2 - 8;
+  text.setAttribute("x", midX);
+  text.setAttribute("y", midY);
   text.setAttribute("fill", "#007bff");
   text.setAttribute("font-size", "12");
   text.setAttribute("text-anchor", "middle");
   text.textContent = label;
+  text.id = `text-${fromId}-${toId}`;
 
   const svg = document.querySelector(".connector-svg");
   svg.appendChild(line);
   svg.appendChild(text);
 }
 
+// Render Tree
 function renderTree(data) {
   const wrapper = document.getElementById("tree-wrapper");
   wrapper.querySelectorAll(".tree-member").forEach(el => el.remove());
@@ -226,22 +224,29 @@ function renderTree(data) {
   `;
 
   document.getElementById("header").innerText = "Family Tree of " + data.root.name;
-  updateUrl(data.root);
 
+  // Root node
   const root = makeNode(data.root, "45%", "40%", "Self", true);
 
+  // Father
   if (data.relations.father) {
     const father = makeNode(data.relations.father, "20%", "8%", "Father");
     connectNodes(father.id, root.id, "Father");
   }
+
+  // Mother
   if (data.relations.mother) {
     const mother = makeNode(data.relations.mother, "70%", "8%", "Mother");
     connectNodes(mother.id, root.id, "Mother", true);
   }
+
+  // Spouse
   if (data.relations.spouse) {
     const spouse = makeNode(data.relations.spouse, "20%", "40%", "Spouse");
     connectNodes(root.id, spouse.id, "Spouse");
   }
+
+  // Siblings
   if (data.relations.siblings && data.relations.siblings.length > 0) {
     let x = 25;
     data.relations.siblings.forEach(sib => {
@@ -250,6 +255,8 @@ function renderTree(data) {
       x += 15;
     });
   }
+
+  // Children
   if (data.relations.children && data.relations.children.length > 0) {
     let x = 35;
     data.relations.children.forEach(child => {
@@ -260,22 +267,35 @@ function renderTree(data) {
   }
 }
 
-async function loadTree(memberId = defaultRootId, relation = 'self', name = '') {
+// Load Tree Data
+async function loadTree(memberId = rootId) {
   try {
-    const res = await fetch(`/api/tree/${memberId}`);
+    const res = await fetch(`/tree/${memberId}`);
     if (!res.ok) throw new Error("Failed to load tree data");
     const data = await res.json();
     renderTree(data);
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     alert("Error loading family tree data!");
   }
 }
 
-// Initialize
-const urlParams = getUrlParams();
-loadTree(urlParams.id, urlParams.relation, urlParams.name);
-window.addEventListener("resize", () => loadTree(urlParams.id, urlParams.relation, urlParams.name));
+loadTree(rootId);
+window.addEventListener("resize", () => loadTree(rootId));
 </script>
+
+
+
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+     <script>
+    // jQuery reload
+    $("#myButton").on("click", function() {
+      location.reload();
+    });
+
+    </script>
+
+
 </body>
 </html>

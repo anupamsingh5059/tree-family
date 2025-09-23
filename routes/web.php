@@ -21,13 +21,17 @@ use App\Http\Middleware\Admin;
 Route::get('/ss', [MemberController::class, 'index']);
 // Route::get('/member/{id}', [MemberController::class, 'show']);
 
-Route::get('/tree/{id}', [MemberController::class,'getTree']);
+// For JSON API (used by JS)
+Route::get('/api/tree/{id}', [MemberController::class,'getTree']);
 
+// For the Blade page
+Route::get('/tree/{id?}/{relation?}', [MemberController::class,'viewTree']); 
 
+// Root page (optional, loads tree for default member id = 1)
 Route::get('/', function() {
-    // Anupam ka id = 1
     return view('tree');
 });
+
 
 // Registration
 Route::get('register', [AuthController::class, 'showRegister'])->name('register.form');
@@ -49,13 +53,14 @@ Route::post('post-login', [AuthController::class, 'postLogin'])->name('login.pos
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::group(['middleware' => 'admin'], function () {
-Route::get('/get-users', [MemberController::class, "familytree"]);
-Route::get('/dashboard', [FamilyTreeController::class, 'index']);
-Route::post('/store', [FamilyTreeController::class, 'store'])->name('store');
-Route::get('/fetchall-tree', [FamilyTreeController::class, 'fetchAll'])->name('fetchAll');
-Route::delete('/delete', [FamilyTreeController::class, 'delete'])->name('delete');
-Route::get('/edit', [FamilyTreeController::class, 'edit'])->name('edit');
-Route::post('/update', [FamilyTreeController::class, 'update'])->name('update');
+
+    Route::get('/get-users', [MemberController::class, "familytree"]);
+    Route::get('/dashboard', [FamilyTreeController::class, 'index']);
+    Route::post('/store', [FamilyTreeController::class, 'store'])->name('store');
+    Route::get('/fetchall-tree', [FamilyTreeController::class, 'fetchAll'])->name('fetchAll');
+    Route::delete('/delete', [FamilyTreeController::class, 'delete'])->name('delete');
+    Route::get('/edit', [FamilyTreeController::class, 'edit'])->name('edit');
+    Route::post('/update', [FamilyTreeController::class, 'update'])->name('update');
 
 
 });
