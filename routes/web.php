@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomtreeController;
 use App\Http\Controllers\FamilyController;
 use Illuminate\Support\Str;
 use App\Models\Member;
+
 Route::get('insert', function() {
     $members = Member::all(); // all members
 
@@ -89,6 +90,37 @@ Route::post('custome-post', [CustomController::class, "CustomePost"])->name('use
 
 
 
-Route::get('tree-new', [FamilyController::class, "family"]);
 
 
+
+// migration create this route
+
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/run-all/{key}', function ($key) {
+    // Change this to a strong random key
+    $SECRET_KEY = 'MySuperSecretKey12345';
+
+    if ($key !== $SECRET_KEY) {
+        abort(403, 'Unauthorized access!');
+    }
+
+    // Run migrations
+    Artisan::call('migrate', ['--force' => true]);
+
+    // Clear caches
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+
+    return "✅ Migrations ran and all caches cleared successfully!";
+});
+
+
+Route::get('/clear-cache', function () {
+   Artisan::call('cache:clear');
+   Artisan::call('route:clear');
+
+   return "Cache cleared successfully";
+});

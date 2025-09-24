@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Tree (Plus Icons)</title>
+  <title>Dynamic Family Tree</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+    }
+    h1 { margin: 20px 0; }
+
     .circle-tree {
       position: relative;
-      width: 750px;
-      height: 750px;
+      width: 800px;
+      height: 800px;
       margin: auto;
     }
 
@@ -39,132 +46,166 @@
       font-size: 14px;
     }
 
-    .btn {
-      display: inline-block;
-      margin-top: 4px;
-      padding: 4px 10px;
-      font-size: 12px;
-      background: #002b80;
-      color: white;
-      border-radius: 5px;
-      text-decoration: none;
+    .plus-icon {
+      position: absolute;
+      bottom: -9px;
+      left: 45%;
+      width: 20px;
+      height: 20px;
+      background: #000;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
-    .center {
-      top: 50%;
-      left: 50%;
-    }
-
-    /* Line */
     .line {
       position: absolute;
       height: 2px;
       background: #999;
-      top: 50%;
-      left: 50%;
       transform-origin: left center;
+      z-index: 1;
     }
 
-    /* Labels */
-    .line .label {
+    .label {
       position: absolute;
-      left: 50%;
-      top: -22px;
       font-size: 13px;
       color: #333;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
       white-space: nowrap;
-    }
-
-    .wife-label {
-      top: 8px !important;
-      transform: rotate(180deg) !important;
-    }
-
-    .text-h1 {
-      text-align: center;
-    }
-
-    /* + icon */
-    .plus-icon {
-    position: absolute;
-    bottom: -9px;
-    left: 45%;
-    width: 15px;
-    height: 15px;
-    background: #000;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
 <body>
-  <h1 class="text-h1">Family Tree</h1>
-  <div class="circle-tree">
-    <!-- Center Node -->
-    <div class="node center">
-      <img src="images/New Project (1).png">
-      <div class="name">Me</div>
-      <a href="#" class="btn">VIEW</a>
-    </div>
 
-    <!-- Mother -->
-    <div class="line" style="width:270px; transform: rotate(-120deg);">
-      <span class="label">Mother</span>
-    </div>
-    <div class="node" style="top: calc(50% - 280px); left: calc(50% - 170px);">
-     
-      <img src="images/New Project (1).png">
-      <div class="name">Mother</div>
-      <div class="plus-icon">+</div>
-    </div>
+<h1>Family Tree</h1>
+<div class="circle-tree"></div>
 
-    <!-- Father -->
-    <div class="line" style="width:270px; transform: rotate(-60deg);">
-      <span class="label">Father</span>
-    </div>
-    <div class="node" style="top: calc(50% - 280px); left: calc(50% + 170px);">
-      <img src="images/New Project (1).png">
-      <div class="name">Father</div>
-      <a href="#" class="btn">VIEW</a>
-    </div>
+<script>
+const apiUrl = '/api/tree'; // Laravel API
+const defaultSlug = 'me'; // default member slug
 
-    <!-- Wife -->
-    <div class="line" style="width:300px; transform: rotate(180deg);">
-      <span class="label wife-label">Wife</span>
-    </div>
-    <div class="node" style="top: 50%; left: calc(50% - 300px);">
-      <div class="plus-icon">+</div>
-      <img src="images/New Project (1).png">
-      <div class="name">Wife</div>
-      <!-- <a href="#" class="btn">VIEW</a> -->
-    </div>
+// Fetch data from API
+async function loadTree(slug = defaultSlug) {
+    try {
+        const res = await fetch(`${apiUrl}/${slug.toLowerCase()}`);
+        if (!res.ok) throw new Error('Failed to load data');
+        const data = await res.json();
+        renderTree(data);
+    } catch(err) {
+        console.error(err);
+        alert('Error loading family tree!');
+    }
+}
 
-    <!-- Child 1 -->
-    <div class="line" style="width:270px; transform: rotate(120deg);">
-      <span class="label wife-label">Child 1</span>
-    </div>
-    <div class="node" style="top: calc(50% + 280px); left: calc(50% - 170px);">
-      <img src="images/New Project (1).png">
-      <div class="name">Child 1</div>
-      <!-- <a href="#" class="btn">VIEW</a> -->
-    </div>
+// Render tree dynamically
+function renderTree(data) {
+    const container = document.querySelector('.circle-tree');
+    container.innerHTML = ''; // clear old nodes
 
-    <!-- Child 2 -->
-    <div class="line" style="width:270px; transform: rotate(60deg);">
-      <span class="label">Child 2</span>
-    </div>
-    <div class="node" style="top: calc(50% + 280px); left: calc(50% + 170px);">
-      <img src="images/New Project (1).png">
-      <div class="name">Child 2</div>
-      <!-- <a href="#" class="btn">VIEW</a> -->
-    </div>
-  </div>
+    const centerX = 400, centerY = 400; // center coordinates
+
+    // Center node
+    const rootNode = createNode(data.root, centerX, centerY, true);
+    container.appendChild(rootNode);
+
+    // Collect all relations in order
+    const relations = [
+        {key: 'father', nodes: data.relations.father ? [data.relations.father] : []},
+        {key: 'mother', nodes: data.relations.mother ? [data.relations.mother] : []},
+        {key: 'spouse', nodes: data.relations.spouse ? [data.relations.spouse] : []},
+        {key: 'siblings', nodes: data.relations.siblings || []},
+        {key: 'children', nodes: data.relations.children || []},
+    ];
+
+    const radius = {
+        father: 250,
+        mother: 250,
+        spouse: 250,
+        siblings: 200,
+        children: 200
+    };
+
+    for (const rel of relations) {
+        const count = rel.nodes.length;
+        if (count === 0) continue;
+
+        const startAngle = -90; // starting angle
+        const angleStep = 180 / (count + 1); // spread evenly
+
+        rel.nodes.forEach((node, i) => {
+            const angle = startAngle + angleStep*(i+1);
+            const {x, y} = polarToCartesian(angle, radius[rel.key]);
+            const childNode = createNode(node, centerX + x, centerY + y);
+            container.appendChild(childNode);
+            createLine(rootNode, childNode, rel.key);
+        });
+    }
+}
+
+// Convert polar to cartesian
+function polarToCartesian(angle, radius){
+    const rad = angle * (Math.PI/180);
+    return {x: radius*Math.cos(rad), y: radius*Math.sin(rad)};
+}
+
+// Create a node element
+function createNode(member, x, y, isRoot=false){
+    const div = document.createElement('div');
+    div.className = 'node';
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    div.innerHTML = `
+        <img src="${member.image ? '/uploads/'+member.image : 'https://via.placeholder.com/65'}">
+        <div class="name">${member.name}</div>
+        ${!isRoot && member.has_more ? `<div class="plus-icon" onclick="loadTree('${member.name}')">+</div>` : ''}
+    `;
+    return div;
+}
+
+// Draw line between two nodes
+function createLine(fromNode, toNode, labelText=''){
+    const line = document.createElement('div');
+    line.className = 'line';
+    const fromRect = fromNode.getBoundingClientRect();
+    const toRect = toNode.getBoundingClientRect();
+    const containerRect = document.querySelector('.circle-tree').getBoundingClientRect();
+
+    const x1 = fromRect.left + fromRect.width/2 - containerRect.left;
+    const y1 = fromRect.top + fromRect.height/2 - containerRect.top;
+    const x2 = toRect.left + toRect.width/2 - containerRect.left;
+    const y2 = toRect.top + toRect.height/2 - containerRect.top;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    line.style.width = length + 'px';
+    line.style.left = x1 + 'px';
+    line.style.top = y1 + 'px';
+    line.style.transform = `rotate(${angle}deg)`;
+
+    if(labelText){
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = labelText;
+        line.appendChild(label);
+    }
+
+    document.querySelector('.circle-tree').appendChild(line);
+}
+
+// Initialize
+loadTree();
+</script>
+
 </body>
 </html>

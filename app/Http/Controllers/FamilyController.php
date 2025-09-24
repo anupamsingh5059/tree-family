@@ -8,8 +8,4 @@ class FamilyController extends Controller
 {
     
 
-    public function family(){
-
-        return view("tree-new");
-    }
 }
