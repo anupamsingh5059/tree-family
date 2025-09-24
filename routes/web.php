@@ -6,7 +6,19 @@ use App\Http\Controllers\FamilyTreeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomController;
 use App\Http\Controllers\CustomtreeController;
+use App\Http\Controllers\FamilyController;
+use Illuminate\Support\Str;
+use App\Models\Member;
+Route::get('insert', function() {
+    $members = Member::all(); // all members
 
+    foreach($members as $member) {
+        $member->slug = Str::slug($member->name);
+        $member->save();
+    }
+
+    return "Slugs updated successfully!";
+});
 
 Route::get('/family-one/{id}', [CustomtreeController::class, 'getFamilyOne']);
 
@@ -21,15 +33,16 @@ use App\Http\Middleware\Admin;
 Route::get('/ss', [MemberController::class, 'index']);
 // Route::get('/member/{id}', [MemberController::class, 'show']);
 
-// For JSON API (used by JS)
-Route::get('/api/tree/{id}', [MemberController::class,'getTree']);
+Route::get('/tree/{slug}/{relation?}', [MemberController::class, 'viewTree']);
+Route::get('/api/tree/{slug}', [MemberController::class, 'getTree']);
 
-// For the Blade page
-Route::get('/tree/{id?}/{relation?}', [MemberController::class,'viewTree']); 
 
 // Root page (optional, loads tree for default member id = 1)
 Route::get('/', function() {
-    return view('tree');
+    $defaultMember = Member::first(); // first member as default
+    return view('tree', [
+        'default_name' => $defaultMember ? $defaultMember->name : ''
+    ]);
 });
 
 
@@ -72,5 +85,10 @@ Route::group(['middleware' => 'admin'], function () {
 // Route::get('')
 Route::get('custome-login', [CustomController::class, "Customelogin"]);
 Route::post('custome-post', [CustomController::class, "CustomePost"])->name('users.store');
+
+
+
+
+Route::get('tree-new', [FamilyController::class, "family"]);
 
 

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+
+use Illuminate\Support\Str;
 class FamilyTreeController extends Controller
 {
     //
@@ -88,6 +90,7 @@ class FamilyTreeController extends Controller
 					'relation' => $request->relation,
 					'parent_id' => $request->parent_id,
 					'image' => $fileName,
+					 'slug' => Str::slug($request->name) // <-- automatically convert name to slug
 				]);
 
 				return response()->json([
@@ -113,6 +116,7 @@ class FamilyTreeController extends Controller
 					'parent_id' => 'required',
 					// image optional rakha hai update me
 					'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+					
 				]);
 
 				if ($validator->fails()) {
@@ -144,6 +148,7 @@ class FamilyTreeController extends Controller
 				$family->name = $request->name;
 				$family->relation = $request->relation;
 				$family->parent_id = $request->parent_id;
+				$family->slug = Str::slug($request->name) ;// <-- automatically convert name to slug
 				$family->save();
 
 				return response()->json([

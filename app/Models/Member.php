@@ -3,11 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Member extends Model
 {
     protected $table = 'members';
-    protected $fillable = ['name', 'parent_id', 'relation', 'image'];
+    protected $fillable = ['name', 'parent_id', 'relation', 'image', 'slug'];
+
+    // Automatically generate slug from name
+    protected static function booted()
+    {
+        static::saving(function ($member) {
+            $member->slug = Str::slug($member->name);
+        });
+    }
 
     // 🔹 Parent (jiska ye child hai)
     public function parent()

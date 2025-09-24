@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Tree (Plus Icons)</title>
+  <style>
+    .circle-tree {
+      position: relative;
+      width: 750px;
+      height: 750px;
+      margin: auto;
+    }
+
+    .node {
+      position: absolute;
+      width: 110px;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      border: 1px solid #000;
+      padding: 10px;
+      border-radius: 10px;
+      background: #fff;
+      z-index: 9;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .node img {
+      width: 65px;
+      border-radius: 50%;
+      border: 2px solid #4CAF50;
+      padding: 4px;
+      background: white;
+    }
+
+    .name {
+      font-weight: bold;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      background: #002b80;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .center {
+      top: 50%;
+      left: 50%;
+    }
+
+    /* Line */
+    .line {
+      position: absolute;
+      height: 2px;
+      background: #999;
+      top: 50%;
+      left: 50%;
+      transform-origin: left center;
+    }
+
+    /* Labels */
+    .line .label {
+      position: absolute;
+      left: 50%;
+      top: -22px;
+      font-size: 13px;
+      color: #333;
+      white-space: nowrap;
+    }
+
+    .wife-label {
+      top: 8px !important;
+      transform: rotate(180deg) !important;
+    }
+
+    .text-h1 {
+      text-align: center;
+    }
+
+    /* + icon */
+    .plus-icon {
+    position: absolute;
+    bottom: -9px;
+    left: 45%;
+    width: 15px;
+    height: 15px;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1 class="text-h1">Family Tree</h1>
+  <div class="circle-tree">
+    <!-- Center Node -->
+    <div class="node center">
+      <img src="images/New Project (1).png">
+      <div class="name">Me</div>
+      <a href="#" class="btn">VIEW</a>
+    </div>
+
+    <!-- Mother -->
+    <div class="line" style="width:270px; transform: rotate(-120deg);">
+      <span class="label">Mother</span>
+    </div>
+    <div class="node" style="top: calc(50% - 280px); left: calc(50% - 170px);">
+     
+      <img src="images/New Project (1).png">
+      <div class="name">Mother</div>
+      <div class="plus-icon">+</div>
+    </div>
+
+    <!-- Father -->
+    <div class="line" style="width:270px; transform: rotate(-60deg);">
+      <span class="label">Father</span>
+    </div>
+    <div class="node" style="top: calc(50% - 280px); left: calc(50% + 170px);">
+      <img src="images/New Project (1).png">
+      <div class="name">Father</div>
+      <a href="#" class="btn">VIEW</a>
+    </div>
+
+    <!-- Wife -->
+    <div class="line" style="width:300px; transform: rotate(180deg);">
+      <span class="label wife-label">Wife</span>
+    </div>
+    <div class="node" style="top: 50%; left: calc(50% - 300px);">
+      <div class="plus-icon">+</div>
+      <img src="images/New Project (1).png">
+      <div class="name">Wife</div>
+      <!-- <a href="#" class="btn">VIEW</a> -->
+    </div>
+
+    <!-- Child 1 -->
+    <div class="line" style="width:270px; transform: rotate(120deg);">
+      <span class="label wife-label">Child 1</span>
+    </div>
+    <div class="node" style="top: calc(50% + 280px); left: calc(50% - 170px);">
+      <img src="images/New Project (1).png">
+      <div class="name">Child 1</div>
+      <!-- <a href="#" class="btn">VIEW</a> -->
+    </div>
+
+    <!-- Child 2 -->
+    <div class="line" style="width:270px; transform: rotate(60deg);">
+      <span class="label">Child 2</span>
+    </div>
+    <div class="node" style="top: calc(50% + 280px); left: calc(50% + 170px);">
+      <img src="images/New Project (1).png">
+      <div class="name">Child 2</div>
+      <!-- <a href="#" class="btn">VIEW</a> -->
+    </div>
+  </div>
+</body>
+</html>
