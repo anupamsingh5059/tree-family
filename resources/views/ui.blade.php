@@ -5,91 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Responsive Family Tree</title>
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; margin:0; padding:0; background:#f0f2f5; }
-h1 { text-align:center; margin:20px 0; font-size:24px; color:#333; }
+body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f8f9fa; }
+h1 { text-align:center; margin:20px 0; font-size:20px; }
 
-#tree-wrapper {
-    width:100%;
-    height:90vh;
-    overflow-x:hidden; /* disable horizontal scroll */
-    overflow-y:auto;   /* vertical scroll only */
-    position:relative;
-    background:#fff;
-    border:1px solid #ccc;
-    border-radius:12px;
-    padding:30px 10px 10px 10px; /* top padding for plus icon */
-    touch-action: pan-x pan-y pinch-zoom; /* mobile-friendly */
-}
-
+#tree-wrapper { width:100%; height:90vh; overflow:auto; position:relative; border:1px solid #ccc; background:white; }
 #tree-container { position:relative; transform-origin:top left; }
 
 .node {
     position:absolute;
-    width:140px;
+    width:120px;
     text-align:center;
     transform:translate(-50%,-50%);
-    border-radius:16px;
-    background:#fff;
-    box-shadow:0 6px 12px rgba(0,0,0,0.15);
+    border:1px solid #000;
     padding:10px;
-    z-index:10;
-    cursor:pointer;
-    transition: transform 0.2s;
-}
-.node:hover { transform: translate(-50%, -50%) scale(1.05); }
-
-.node img {
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    border:3px solid #4CAF50;
-    padding:4px;
+    border-radius:12px;
     background:#fff;
-    object-fit:cover;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    z-index:10;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
-
-.name { font-weight:bold; font-size:14px; margin:6px 0 2px 0; color:#222; }
-.relation { font-size:12px; color:#555; }
-
-.root-label {
-    font-weight:bold;
-    font-size:15px;
-    color:#002b80;
-    margin-bottom:6px;
-}
-
-.btn { display:inline-block; margin-top:6px; padding:4px 12px; font-size:12px;
-      background:#002b80; color:white; border-radius:6px; text-decoration:none; transition:0.2s;}
-.btn:hover { background:#0041c2; }
-
-/* Plus icon floating above node */
+.node img { width:65px; height:65px; border-radius:50%; border:2px solid #4CAF50; padding:4px; background:white; }
+.name { font-weight:bold; margin-top:6px; font-size:14px; }
+.btn { display:inline-block; margin-top:4px; padding:4px 10px; font-size:12px; background:#002b80; color:white; border-radius:5px; text-decoration:none; }
 .plus-icon {
-    position:absolute;
-    top:-12px; /* float above node */
-    left:50%;
-    width:22px;
-    height:22px;
-    background:#000;
-    color:#fff;
-    font-size:14px;
-    font-weight:bold;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 2px 4px rgba(0,0,0,0.3);
+    position:absolute; top:-10px; left:50%;
+    width:18px; height:18px; background:#000; color:#fff;
+    font-size:14px; font-weight:bold; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.2);
     transform:translateX(-50%);
-    z-index:20;
 }
-
 .line {
     position:absolute;
     height:2px;
-    background:#666;
+    background:#333;
     transform-origin:left center;
-    border-radius:2px;
 }
 .line-label {
     position:absolute;
@@ -97,29 +46,17 @@ h1 { text-align:center; margin:20px 0; font-size:24px; color:#333; }
     font-weight:bold;
     color:#333;
     background:#fff;
-    padding:2px 6px;
+    padding:2px 5px;
     border-radius:4px;
     white-space:nowrap;
-    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+    transform:none !important;
 }
 
 @media (max-width:768px){
-    .node { width:110px; }
+    .node { width:100px; }
     .node img { width:50px; height:50px; }
     .name { font-size:12px; }
-    .relation { font-size:11px; }
-    .btn { font-size:10px; padding:3px 8px; }
-    .line-label { font-size:11px; }
-}
-
-@media (max-width:480px){
-    h1 { font-size:20px; }
-    .node { width:90px; padding:6px; }
-    .node img { width:40px; height:40px; }
-    .name { font-size:11px; }
-    .relation { font-size:10px; }
-    .btn { font-size:9px; padding:2px 6px; }
-    .line-label { font-size:10px; }
+    .btn { font-size:10px; padding:3px 6px; }
 }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -132,11 +69,9 @@ h1 { text-align:center; margin:20px 0; font-size:24px; color:#333; }
 
 <script>
 $(function(){
-    let currentRootSlug = "anupam"; 
-    const pathSlug = window.location.pathname.split("/tree/")[1];
-    if(pathSlug) currentRootSlug = pathSlug;
+    let defaultSlug = "anupam"; // Root member slug
 
-    loadTree(currentRootSlug);
+    if(defaultSlug) loadTree(defaultSlug);
 
     function updateURL(slug){
         if(history.pushState){
@@ -147,7 +82,6 @@ $(function(){
 
     function loadTree(slug){
         $.getJSON("/api/tree/"+slug,function(data){
-            currentRootSlug = slug;
             renderTree(data);
             updateURL(slug);
             scaleTree();
@@ -165,21 +99,18 @@ $(function(){
         const centerX = width/2;
         const centerY = height/2;
 
-        // Adaptive spacing for mobile
-        const step = window.innerWidth < 768 ? 140 : 240;
-        const verticalGap = window.innerWidth < 768 ? 180 : 260;
-
-        function createNode(member, x, y, parentNode=null, relationLabel="", isRoot=false, rootLabelText="Root"){
+        function createNode(member, x, y, parentNode=null, relationLabel=""){
             if(!member) return null;
+
             let hasRelations = (member.has_more || (member.children && member.children.length>0));
+
             let html = `<div class="node" style="left:${x}px; top:${y}px;" data-slug="${member.slug}">
-                ${isRoot?'<div class="root-label">'+rootLabelText+'</div>':''}
                 ${hasRelations?'<div class="plus-icon">+</div>':''}
-                <img src="/uploads/${member.image}" alt="${member.name}">
+                <img src="/uploads/${member.image}">
                 <div class="name">${member.name}</div>
-                <div class="relation">${member.relation || ""}</div>
                 ${hasRelations?'<a href="#" class="btn">more</a>':''}
             </div>`;
+
             const node = $(html);
             container.append(node);
 
@@ -187,7 +118,7 @@ $(function(){
                 drawLine(parentNode, node, relationLabel);
             }
 
-            node.find(".btn, .plus-icon, img").click(function(e){
+            node.find(".btn, .plus-icon").click(function(e){
                 e.preventDefault();
                 if(member.slug) loadTree(member.slug);
             });
@@ -195,22 +126,22 @@ $(function(){
             return node;
         }
 
-        const rootNode = createNode(data.root, centerX, centerY, null, "", true, "Self");
+        const rootNode = createNode(data.root, centerX, centerY);
         const rel = data.relations;
 
-        if(rel.father) createNode(rel.father, centerX - step, centerY - verticalGap, rootNode, "Father");
-        if(rel.mother) createNode(rel.mother, centerX + step, centerY - verticalGap, rootNode, "Mother");
-        if(rel.spouse) createNode(rel.spouse, centerX - step-40, centerY, rootNode, "Spouse");
+        if(rel.father) createNode(rel.father, centerX - 250, centerY - 250, rootNode, "Father");
+        if(rel.mother) createNode(rel.mother, centerX + 250, centerY - 250, rootNode, "Mother");
+        if(rel.spouse) createNode(rel.spouse, centerX - 300, centerY, rootNode, "Spouse");
 
         if(rel.children && rel.children.length > 0){
+            const step = 220;
+            const verticalGap = 250;
             rel.children.forEach((child,i)=>{
                 const offsetX = (i - (rel.children.length-1)/2) * step;
                 const offsetY = centerY + verticalGap;
                 createNode(child, centerX + offsetX, offsetY, rootNode, "Child");
             });
         }
-
-        centerRootNode(rootNode);
     }
 
     function drawLine(fromNode,toNode,relation){
@@ -229,10 +160,11 @@ $(function(){
         const line = $(`<div class="line" style="width:${length}px; top:${y1}px; left:${x1}px; transform: rotate(${angle}deg);"></div>`);
         $("#tree-container").append(line);
 
-        const midX = (x1 + x2)/2;
-        const midY = (y1 + y2)/2;
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+
         const label = $(`<div class="line-label">${relation}</div>`);
-        label.css({ left: midX, top: midY - 18 });
+        label.css({ left: midX, top: midY - 20 });
         $("#tree-container").append(label);
     }
 
@@ -243,17 +175,6 @@ $(function(){
         const hScale = wrapper.height() / container.height();
         const scale = Math.min(wScale, hScale, 1);
         container.css("transform","scale("+scale+")");
-    }
-
-    function centerRootNode(rootNode){
-        if(!rootNode) return;
-        const wrapper = $("#tree-wrapper");
-        const rootPos = rootNode.position();
-        const rootWidth = rootNode.outerWidth();
-        const rootHeight = rootNode.outerHeight();
-        const scrollLeft = rootPos.left + rootWidth/2 - wrapper.width()/2;
-        const scrollTop = rootPos.top + rootHeight/2 - wrapper.height()/2;
-        wrapper.animate({ scrollLeft: scrollLeft, scrollTop: scrollTop }, 400);
     }
 
     $(window).on("resize", scaleTree);

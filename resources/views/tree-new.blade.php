@@ -1,210 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Family Tree</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      text-align: center;
-    }
-    h1 { margin: 20px 0; }
-
-    .circle-tree {
-      position: relative;
-      width: 800px;
-      height: 800px;
-      margin: auto;
-    }
-
-    .node {
-      position: absolute;
-      width: 110px;
-      text-align: center;
-      transform: translate(-50%, -50%);
-      border: 1px solid #000;
-      padding: 10px;
-      border-radius: 10px;
-      background: #fff;
-      z-index: 9;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .node img {
-      width: 65px;
-      border-radius: 50%;
-      border: 2px solid #4CAF50;
-      padding: 4px;
-      background: white;
-    }
-
-    .name {
-      font-weight: bold;
-      margin-top: 6px;
-      font-size: 14px;
-    }
-
-    .plus-icon {
-      position: absolute;
-      bottom: -9px;
-      left: 45%;
-      width: 20px;
-      height: 20px;
-      background: #000;
-      color: #fff;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
-    .line {
-      position: absolute;
-      height: 2px;
-      background: #999;
-      transform-origin: left center;
-      z-index: 1;
-    }
-
-    .label {
-      position: absolute;
-      font-size: 13px;
-      color: #333;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Tree</title>
+<style>
+.circle-tree {
+    position: relative;
+    width: 900px;
+    height: 900px;
+    margin: 40px auto;
+}
+.node {
+    position: absolute;
+    width: 120px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    border: 1px solid #000;
+    padding: 10px;
+    border-radius: 12px;
+    background: #fff;
+    z-index: 9;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.node img {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: 2px solid #4CAF50;
+    padding: 4px;
+    object-fit: cover;
+}
+.name { font-weight: bold; margin-top: 6px; font-size: 14px; }
+.plus-icon {
+    position: absolute;
+    top: -10px;
+    left: 45%;
+    width: 18px;
+    height: 18px;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+.connector-svg {
+    position: absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    z-index:1;
+}
+</style>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 </head>
 <body>
 
-<h1>Family Tree</h1>
-<div class="circle-tree"></div>
+<h1 style="text-align:center;">Family Tree</h1>
+
+<div class="circle-tree">
+    <!-- Root Node -->
+    <div class="node center" data-id="{{ $member->id }}">
+        @if($member->children()->count() > 0)
+            <div class="plus-icon">+</div>
+        @endif
+        <img src="{{ asset('uploads/'.$member->image) }}" alt="{{ $member->name }}">
+        <div class="name">{{ $member->name }}</div>
+        <div class="children-container"></div>
+    </div>
+
+    <!-- Parents & Spouse -->
+    @if($father)
+    <div class="node" style="top: calc(50% - 220px); left: 50%;" data-id="{{ $father->id }}">
+        @if($father->children()->count() > 0)
+            <div class="plus-icon">+</div>
+        @endif
+        <img src="{{ asset('uploads/'.$father->image) }}" alt="{{ $father->name }}">
+        <div class="name">{{ $father->name }}</div>
+        <div class="children-container"></div>
+    </div>
+    @endif
+
+    @if($mother)
+    <div class="node" style="top: calc(50% - 220px); left: calc(50% + 140px);" data-id="{{ $mother->id }}">
+        @if($mother->children()->count() > 0)
+            <div class="plus-icon">+</div>
+        @endif
+        <img src="{{ asset('uploads/'.$mother->image) }}" alt="{{ $mother->name }}">
+        <div class="name">{{ $mother->name }}</div>
+        <div class="children-container"></div>
+    </div>
+    @endif
+
+    @if($spouse)
+    <div class="node" style="top: 50%; left: calc(50% + 200px);" data-id="{{ $spouse->id }}">
+        @if($spouse->children()->count() > 0)
+            <div class="plus-icon">+</div>
+        @endif
+        <img src="{{ asset('uploads/'.$spouse->image) }}" alt="{{ $spouse->name }}">
+        <div class="name">{{ $spouse->name }}</div>
+        <div class="children-container"></div>
+    </div>
+    @endif
+
+    <!-- Children -->
+    @foreach($children as $i => $child)
+    @php
+        $angle = ($i - ($children->count()-1)/2) * 40; 
+        $radius = 200;
+        $x = $radius * cos(deg2rad($angle));
+        $y = $radius * sin(deg2rad($angle));
+    @endphp
+    <div class="node" style="top: calc(50% + {{ $y }}px); left: calc(50% + {{ $x }}px);" data-id="{{ $child->id }}">
+        @if($child->children()->count() > 0)
+            <div class="plus-icon">+</div>
+        @endif
+        <img src="{{ asset('uploads/'.$child->image) }}" alt="{{ $child->name }}">
+        <div class="name">{{ $child->name }}</div>
+        <div class="children-container"></div>
+    </div>
+    @endforeach
+</div>
+
+<svg class="connector-svg"></svg>
 
 <script>
-const apiUrl = '/api/tree'; // Laravel API
-const defaultSlug = 'me'; // default member slug
+function drawLine(parentEl, childEl){
+    const parentRect = parentEl.getBoundingClientRect();
+    const childRect = childEl.getBoundingClientRect();
+    const svg = document.querySelector('.connector-svg');
+    const svgRect = svg.getBoundingClientRect();
 
-// Fetch data from API
-async function loadTree(slug = defaultSlug) {
-    try {
-        const res = await fetch(`${apiUrl}/${slug.toLowerCase()}`);
-        if (!res.ok) throw new Error('Failed to load data');
-        const data = await res.json();
-        renderTree(data);
-    } catch(err) {
-        console.error(err);
-        alert('Error loading family tree!');
-    }
+    const x1 = parentRect.left + parentRect.width/2 - svgRect.left;
+    const y1 = parentRect.top + parentRect.height/2 - svgRect.top;
+    const x2 = childRect.left + childRect.width/2 - svgRect.left;
+    const y2 = childRect.top + childRect.height/2 - svgRect.top;
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",x1);
+    line.setAttribute("y1",y1);
+    line.setAttribute("x2",x2);
+    line.setAttribute("y2",y2);
+    line.setAttribute("stroke","#007bff");
+    line.setAttribute("stroke-width","2");
+    svg.appendChild(line);
 }
 
-// Render tree dynamically
-function renderTree(data) {
-    const container = document.querySelector('.circle-tree');
-    container.innerHTML = ''; // clear old nodes
+$(document).ready(function(){
+    $('.plus-icon').on('click', function(e){
+        e.stopPropagation();
+        let icon = $(this);
+        let node = icon.closest('.node');
+        let container = node.find('.children-container');
 
-    const centerX = 400, centerY = 400; // center coordinates
+        if(container.is(':empty')){
+            let memberId = node.data('id');
+            $.get('/api/children/' + memberId, function(children){
+                let angleStep = 45;
+                let radius = 150;
+                children.forEach((child, i)=>{
+                    let angle = (-children.length/2 + i) * angleStep;
+                    let rad = angle * Math.PI/180;
+                    let x = radius * Math.cos(rad);
+                    let y = radius * Math.sin(rad);
 
-    // Center node
-    const rootNode = createNode(data.root, centerX, centerY, true);
-    container.appendChild(rootNode);
+                    let childHtml = $(`
+                        <div class="node" data-id="${child.id}" style="top: calc(50% + ${y}px); left: calc(50% + ${x}px);">
+                            ${child.has_more ? '<div class="plus-icon">+</div>' : ''}
+                            <img src="/uploads/${child.image}" alt="${child.name}">
+                            <div class="name">${child.name}</div>
+                            <div class="children-container"></div>
+                        </div>
+                    `);
 
-    // Collect all relations in order
-    const relations = [
-        {key: 'father', nodes: data.relations.father ? [data.relations.father] : []},
-        {key: 'mother', nodes: data.relations.mother ? [data.relations.mother] : []},
-        {key: 'spouse', nodes: data.relations.spouse ? [data.relations.spouse] : []},
-        {key: 'siblings', nodes: data.relations.siblings || []},
-        {key: 'children', nodes: data.relations.children || []},
-    ];
+                    container.append(childHtml);
+                    drawLine(node[0], childHtml[0]);
+                });
 
-    const radius = {
-        father: 250,
-        mother: 250,
-        spouse: 250,
-        siblings: 200,
-        children: 200
-    };
+                container.slideDown();
+                icon.text('-');
 
-    for (const rel of relations) {
-        const count = rel.nodes.length;
-        if (count === 0) continue;
+                container.find('.plus-icon').off('click').on('click', function(){ $(this).trigger('click'); });
+            });
+        } else {
+            container.slideToggle();
+            icon.text(container.is(':visible') ? '-' : '+');
+        }
+    });
 
-        const startAngle = -90; // starting angle
-        const angleStep = 180 / (count + 1); // spread evenly
-
-        rel.nodes.forEach((node, i) => {
-            const angle = startAngle + angleStep*(i+1);
-            const {x, y} = polarToCartesian(angle, radius[rel.key]);
-            const childNode = createNode(node, centerX + x, centerY + y);
-            container.appendChild(childNode);
-            createLine(rootNode, childNode, rel.key);
+    // Draw initial lines between root & parents/spouse/children
+    $('.node.center').each(function(){
+        const root = this;
+        $('.node').not(root).each(function(){
+            drawLine(root, this);
         });
-    }
-}
-
-// Convert polar to cartesian
-function polarToCartesian(angle, radius){
-    const rad = angle * (Math.PI/180);
-    return {x: radius*Math.cos(rad), y: radius*Math.sin(rad)};
-}
-
-// Create a node element
-function createNode(member, x, y, isRoot=false){
-    const div = document.createElement('div');
-    div.className = 'node';
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
-    div.innerHTML = `
-        <img src="${member.image ? '/uploads/'+member.image : 'https://via.placeholder.com/65'}">
-        <div class="name">${member.name}</div>
-        ${!isRoot && member.has_more ? `<div class="plus-icon" onclick="loadTree('${member.name}')">+</div>` : ''}
-    `;
-    return div;
-}
-
-// Draw line between two nodes
-function createLine(fromNode, toNode, labelText=''){
-    const line = document.createElement('div');
-    line.className = 'line';
-    const fromRect = fromNode.getBoundingClientRect();
-    const toRect = toNode.getBoundingClientRect();
-    const containerRect = document.querySelector('.circle-tree').getBoundingClientRect();
-
-    const x1 = fromRect.left + fromRect.width/2 - containerRect.left;
-    const y1 = fromRect.top + fromRect.height/2 - containerRect.top;
-    const x2 = toRect.left + toRect.width/2 - containerRect.left;
-    const y2 = toRect.top + toRect.height/2 - containerRect.top;
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx*dx + dy*dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-    line.style.width = length + 'px';
-    line.style.left = x1 + 'px';
-    line.style.top = y1 + 'px';
-    line.style.transform = `rotate(${angle}deg)`;
-
-    if(labelText){
-        const label = document.createElement('span');
-        label.className = 'label';
-        label.textContent = labelText;
-        line.appendChild(label);
-    }
-
-    document.querySelector('.circle-tree').appendChild(line);
-}
-
-// Initialize
-loadTree();
+    });
+});
 </script>
 
 </body>

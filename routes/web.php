@@ -34,18 +34,16 @@ use App\Http\Middleware\Admin;
 Route::get('/ss', [MemberController::class, 'index']);
 // Route::get('/member/{id}', [MemberController::class, 'show']);
 
-Route::get('/tree/{slug}/{relation?}', [MemberController::class, 'viewTree']);
-Route::get('/api/tree/{slug}', [MemberController::class, 'getTree']);
 
-
-// Root page (optional, loads tree for default member id = 1)
 Route::get('/', function() {
-    $defaultMember = Member::first(); // first member as default
+    $defaultMember = App\Models\Member::first();
     return view('tree', [
-        'default_name' => $defaultMember ? $defaultMember->name : ''
+        'default_member' => $defaultMember
     ]);
 });
 
+Route::get('/tree/{slug}', [MemberController::class, 'viewTree']);
+Route::get('/api/tree/{slug}', [MemberController::class, 'getTree']);
 
 // Registration
 Route::get('register', [AuthController::class, 'showRegister'])->name('register.form');
